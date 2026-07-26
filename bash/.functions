@@ -24,12 +24,15 @@ gpg_tty() {
 	gpg-connect-agent updatestartuptty /bye
 }
 
-9man() {
-	9 man "$@" | $MANPAGER
-}
-
+# Export the public key named by $1, defaulting to $KEY. Without the
+# guard an unset $KEY makes gpg2 export the entire public keyring.
 gpg-pubkey() {
-	gpg2 --export --armor "$KEY"
+	local key="${1:-$KEY}"
+	if [ -z "$key" ]; then
+		printf 'gpg-pubkey: no key given and KEY is unset\n' >&2
+		return 2
+	fi
+	gpg2 --export --armor "$key"
 }
 
 godoc() {

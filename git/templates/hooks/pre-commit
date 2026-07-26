@@ -22,12 +22,14 @@ fi
 
 exec 1>&2
 
+# $SHA rather than HEAD so the hook also works on the initial commit,
+# where HEAD does not yet resolve.
 modified_files() {
 	git diff-index \
 		--name-only \
 		--cached \
-		--diff-filter=ACMR HEAD \
-		-- "$@"
+		--diff-filter=ACMR "$SHA" \
+		--
 }
 
 # warn if non-ASCII filenames are in the staging area

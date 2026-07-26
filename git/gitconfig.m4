@@ -40,7 +40,7 @@
     tool = vimdiff
 
 [help]
-    # auto correct and execute mistyped coommands
+    # auto correct and execute mistyped commands
     autocorrect = 1
 
 [merge]

@@ -3,7 +3,7 @@
 # Usage: rfc [ keywords | nnnn ]
 set -eo pipefail
 
-function error() {
+error() {
 	echo >&2 "usage: $(basename "$0") [NUMBER] | args..."
 	exit "$1"
 }
@@ -25,10 +25,12 @@ if [ ! -f "$lib/index" ]; then
 fi
 
 if [[ ! "$*" =~ ^[0-9]+$ ]]; then
-  grep "$*" "$lib/index" |
-    grep -E -o '^rfc[0-9]+ [A-Za-z \t,_!\(\)"'':-\#;]+\.' |
-    grep "$*" ||
-    echo >&2 "$(basename "$0"): not found"
+	# The && keeps the pipeline in a condition context so `set -e` does
+	# not abort before the not-found message is printed.
+	grep "$*" "$lib/index" |
+		grep -E -o '^rfc[0-9]+ [A-Za-z \t,_!()"'':-\#;]+\.' |
+		grep "$*" && exit 0
+	echo >&2 "$(basename "$0"): not found"
 	exit 1
 fi
 

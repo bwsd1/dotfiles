@@ -22,7 +22,7 @@ TARGETS := install-bin \
 	install-vim \
 	install-i3
 
-.PHONY: all default install clean help configure $(TARGETS)
+.PHONY: all default install uninstall clean help configure $(TARGETS)
 
 .DEFAULT_GOAL := default
 

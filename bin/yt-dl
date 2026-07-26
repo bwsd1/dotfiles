@@ -1,6 +1,16 @@
 #!/bin/sh
-if command -v yt-dlp >/dev/null 2>&1; then
- yt-dlp --no-color -q -x --audio-format best "$1"
-else
-  echo "yt-dlp is not installed"
+#
+# Usage: yt-dl url...
+set -eu
+
+if ! command -v yt-dlp >/dev/null 2>&1; then
+	echo >&2 "$(basename "$0"): yt-dlp is not installed"
+	exit 1
 fi
+
+[ $# -gt 0 ] || {
+	echo >&2 "usage: $(basename "$0") url..."
+	exit 2
+}
+
+yt-dlp --no-color -q -x --audio-format best -- "$@"

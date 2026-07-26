@@ -3,7 +3,7 @@ set -eo pipefail
 
 r=$(curl \
 	-H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; rv:68.0) Gecko/20100101 Firefox/68.0' \
-	-fsL 'http://loadshedding.eskom.co.za/LoadShedding/GetStatus?_=')
+	-fsL 'https://loadshedding.eskom.co.za/LoadShedding/GetStatus?_=')
 
 case "$r" in
 	1) echo "no load shedding" ; exit 0 ;;

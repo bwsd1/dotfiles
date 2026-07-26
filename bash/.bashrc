@@ -1,5 +1,6 @@
 # ~/.bashrc: executed by bash(1) for non-login shells.
 # This file is sourced by all interactive bash shells on startup
+# shellcheck shell=bash
 
 # Test for interactive shell; if shell is non-interactive do nothing
 case $- in
@@ -10,26 +11,20 @@ esac
 # disable write(1), talk(1) to terminal
 command -v mesg &>/dev/null && mesg n 2>/dev/null
 
-# unset -f command_not_found_handle
-
 # number of commands to remember in command history
-HISTSIZE=8192 #$((1 << 13))
+HISTSIZE=$((1 << 13))
 
 # maximum number of lines contained in history file
 HISTFILESIZE=$((1 << 18))
 
-# ignore duplicate commands and whitespace in history
-HISTCONTROL=ignoredups
-
-#HISTIGNORE="&:bg:fg:ls:history:cd -:pwd:exit:date:* --help:*"
+# ignore duplicate commands and leading-whitespace commands in history
+HISTCONTROL=ignoreboth
 
 # include timestamps of commands in history
 HISTTIMEFORMAT='%F %T  '
 
-# Output shell errors in GNU error format.
-#
-# See: https://www.gnu.org/prep/standards/html_node/Errors.html for an
-# explanation of all options.
+# gnu_errfmt below reports shell errors in GNU error format; see
+# https://www.gnu.org/prep/standards/html_node/Errors.html
 shopt -s cdable_vars
 shopt -s cdspell
 shopt -s checkwinsize
@@ -49,7 +44,8 @@ shopt -s progcomp
 shopt -u sourcepath
 
 # GPG agent for SSH authentication
-export GPG_TTY="$(tty)"
+GPG_TTY="$(tty)"
+export GPG_TTY
 if command -v gpgconf >/dev/null 2>&1; then
 	_ssh_sock="$(gpgconf --list-dirs agent-ssh-socket)"
 	if [[ -S "$_ssh_sock" ]]; then

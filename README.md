@@ -1,17 +1,20 @@
 # dotfiles
 
-This repository contains personal settings and scripts for a user's `home/`
-directory.
+Personal configuration for a Debian workstation: bash, vim, tmux, git,
+GnuPG, SSH, i3, and a handful of small user scripts.
 
 ## Installation
 
 ```sh
-apt-get install build-essential m4
+sudo apt-get install build-essential m4
 make install
 ```
 
-**Note**: running `make install` overwrites contents the current user's `$HOME`
-directory. Use the following to test changes in an ephemeral $HOME directory:
+`make help` lists the individual targets (`install-bash`, `install-vim`,
+and so on) if you only want part of it.
+
+**Note**: `make install` overwrites the contents of the current user's
+`$HOME`. To test changes against a throwaway `$HOME` first:
 
 ```sh
 tmpdir="$(mktemp -d)"
@@ -21,4 +24,4 @@ env -i HOME="$tmpdir" TERM="$TERM" "$SHELL" -l
 
 ## License
 
-MIT
+MIT. See [LICENSE](LICENSE).
