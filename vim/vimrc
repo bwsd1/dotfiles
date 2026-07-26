@@ -64,16 +64,8 @@ set wildignore=*~,*.7z,.DS_Store,.git,.hg,.svn,*.a,*.avi,*.bin,*.bmp,*.bz2
 
 set wildignore+=*node_modules/**
 
-set nonumber
-
-set colorcolumn=
-set nolist
-
 " command history to keep
 set history=10000
-
-" show (partial) command in the last line of the screen
-set noshowcmd
 
 " hide startup message when opening Vim without a filename
 set shortmess+=I
@@ -119,6 +111,27 @@ imap <C-v> <ESC>"+pa
 noremap <Leader>y "*y
 set clipboard=unnamedplus
 
+" This Vim build lacks +clipboard, so 'clipboard' and the +/* registers
+" cannot reach X11 on their own. Mirror every yank to the CLIPBOARD
+" selection with xclip so other programs (browser, tmux) can paste it.
+if !has('clipboard') && executable('xclip') && exists('$DISPLAY')
+  function! s:YankToClipboard() abort
+    if v:event.operator !=# 'y'
+      return
+    endif
+    let l:text = join(v:event.regcontents, "\n")
+    if v:event.regtype ==# 'V'
+      let l:text .= "\n"
+    endif
+    call system('xclip -selection clipboard', l:text)
+  endfunction
+
+  augroup clipboard_mirror
+    autocmd!
+    autocmd TextYankPost * call s:YankToClipboard()
+  augroup END
+endif
+
 " Automatically enable paste mode when pasting
 set pastetoggle=<F11>
 
@@ -162,18 +175,6 @@ set smarttab
 " spaces to show for a literal tab when 'list' is unset
 set tabstop=2
 
-function! GitBranch()
-  return system("git rev-parse --abbrev-ref HEAD 2>/dev/null | tr -d '\n'")
-endfunction
-
-function! StatuslineGit()
-  let l:branchname = GitBranch()
-  return strlen(l:branchname) > 0?'  '.l:branchname.' ':''
-endfunction
-
-set statusline+=%#PmenuSel#
-" Display branch name if the working directory is in a git repository
-" set statusline+=%{StatuslineGit()}
 set statusline+=%#LineNr#
 " Display fullpath to file in the buffer
 set statusline+=\ %F
@@ -184,10 +185,6 @@ set statusline+=%=
 set statusline+=%#CursorColumn#
 " Filetype
 set statusline+=\ %y
-" File encoding
-" set statusline+=\ %{&fileencoding?&fileencoding:&encoding}
-" File format
-" set statusline+=\[%{&fileformat}\]
 " Show current position in buffer (percent)
 set statusline+=\ %p%%
 " line_nr:col_nr
@@ -195,38 +192,21 @@ set statusline+=\ %l:%c
 
 " Apply 'softtabstop' on tab-press in insert mode using the same number of
 " spaces as 'shiftwidth'
-execute 'set softtabstop='
-            \ . &shiftwidth
+set softtabstop=2
 
 au BufNewFile,BufRead *.txt setlocal noet tw=69 ts=4 sw=4
 au BufNewFile,BufRead *.md,*.markdown,README setlocal spell noet ts=4 sw=4
-au BufNewFile,BufRead *.yml,*.yaml setlocal expandtab ts=2 sw=2
 au BufNewFile,BufRead *.json setlocal expandtab ts=4 sw=4
-au BufNewFile,BufRead *.go set filetype=go
-au BufNewFile,BufRead *.msmtprc set filetype=msmtp
-au BufNewfile,BufRead *.tex set filetype=tex
-au BufNewFile,BufRead *.py set filetype=python
-au BufNewFile,BufRead muttrc,neomuttrc set filetype=muttrc
-au BufNewFile,BufRead *.mbsyncrc set filetype=mbsync
+au BufNewFile,BufRead *.tex setlocal filetype=tex
+au BufNewFile,BufRead muttrc,neomuttrc setlocal filetype=muttrc
 
-autocmd FileType yml,yaml setlocal syntax=yaml
-autocmd FileType msmtp setlocal syntax=msmtp
-autocmd FileType mbsync setlocal syntax=mbsync
-autocmd FileType fstab,systemd set noexpandtab
+autocmd FileType fstab,systemd setlocal noexpandtab
 autocmd FileType gitcommit setlocal spell
-autocmd FileType APKBUILD setlocal filetype=sh
-autocmd FileType go setlocal syntax=go
-autocmd FileType tex setlocal syntax=tex
 
 autocmd FileType python setlocal expandtab shiftwidth=4 softtabstop=4 noautochdir
-" Linux kernel
-" autocmd FileType c setlocal noexpandtab shiftwidth=8 softtabstop=8 tabstop=8
-" Plan 9 kernel
+" Plan 9 kernel style
 autocmd FileType c setlocal noexpandtab shiftwidth=2 softtabstop=2 tabstop=2
-" autocmd FileType c setlocal noexpandtab shiftwidth=4 softtabstop=4 tabstop=4
-autocmd Filetype tf setlocal noexpandtab shiftwidth=2 softtabstop=2 tabstop=2
-autocmd Filetype js setlocal expandtab shiftwidth=2 tabstop=2
-autocmd Filetype sh setlocal expandtab shiftwidth=2 tabstop=2
+autocmd FileType sh setlocal expandtab shiftwidth=2 tabstop=2
 
 " search
 
@@ -250,7 +230,7 @@ set mat=2
 set synmaxcol=512
 
 " paths where tags may be located
-set tags=./tags.tags;$HOME
+set tags=./tags,tags;$HOME
 
 " mappings
 let mapleader = ","
@@ -285,9 +265,6 @@ nnoremap <silent> <C-J> :call <SID>TmuxNavigate('j')<CR>
 nnoremap <silent> <C-K> :call <SID>TmuxNavigate('k')<CR>
 nnoremap <silent> <C-L> :call <SID>TmuxNavigate('l')<CR>
 
-" yank from cursor to end of line instead of before and after cursor
-" nnoremap Y y$
-
 " disable arrow keys when in normal/visual mode
 noremap <Up> <nop>
 noremap <Down> <nop>
@@ -310,18 +287,15 @@ noremap <Leader>l
 
 " undo peristence
 if has('persistent_undo')
-  let undodir = expand($VIMDIR.'/cache/undo')
-
-  " backup all undo history files to $VIMDIR/undo
-  if !isdirectory(undodir)
-    call mkdir(undodir, "p")
+  let s:undodir = expand($VIMDIR.'/cache/undo')
+  if !isdirectory(s:undodir)
+    call mkdir(s:undodir, 'p')
   endif
-
-  set undodir=~/.vim/cache/undo
+  let &undodir = s:undodir
   set undofile
-  let s:undos = split(globpath(&undodir, '*'), "\n")
+
   " delete undo history files after 30 days
-  " TODO: make this a crontab(5) task
+  let s:undos = split(globpath(&undodir, '*'), "\n")
   call filter(s:undos, 'getftime(v:val) < localtime() - (60 * 60 * 24 * 30)')
   call map(s:undos, 'delete(v:val)')
 endif

@@ -65,9 +65,9 @@ augroup filetypedetect
         \ call s:StripRepeat()
 
   " msmtp rc files
-  autocmd BufNewFile,Bufread
-		\ ?*.msmtprc
-		\ setfiletype msmtp
+  autocmd BufNewFile,BufRead
+        \ ?*.msmtprc
+        \ setfiletype msmtp
 
   " Apache config
   autocmd BufNewFile,BufRead
@@ -182,8 +182,8 @@ augroup filetypedetect
 
   " GTK settings files
   autocmd BufNewFile,BufRead
-        \ .gktrc*,
-        \,gktrc*
+        \ .gtkrc*
+        \,gtkrc*
         \ setfiletype gtkrc
 
   " Vim help files
@@ -211,7 +211,7 @@ augroup filetypedetect
         \,?*.jav
         \ setfiletype java
 
-  " JSON files
+  " JavaScript files
   autocmd BufNewFile,BufRead
         \ ?*.js
         \ setfiletype javascript
@@ -543,6 +543,7 @@ augroup filetypedetect
   " YAML files
   autocmd BufNewFile,BufRead
         \ ?*.yaml
+        \,?*.yml
         \ setfiletype yaml
 
   " Z shell files

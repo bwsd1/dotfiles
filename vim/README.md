@@ -1,15 +1,20 @@
 # vim
 
-## Install and configure plugins
+## Plugins
+
+Plugins are managed as native Vim packages under `~/.vim/pack`. On startup the
+vimrc clones any missing plugin listed in its `s:plugins` bootstrap table:
+
+- [vim-lsp](https://github.com/prabirshrestha/vim-lsp) and
+  [async.vim](https://github.com/prabirshrestha/async.vim)
+- [vim-go](https://github.com/fatih/vim-go)
+- [vim-terraform](https://github.com/hashivim/vim-terraform)
+- [rust.vim](https://github.com/rust-lang/rust.vim)
+
+Post-install steps:
 
 ```bash
-mkdir -p ~/.vim/pack/plugins/start
-
-git clone --depth 1 https://github.com/fatih/vim-go.git ~/.vim/pack/plugins/start/vim-go
-git clone https://github.com/prabirshrestha/vim-lsp.git ~/.vim/pack/lsp/start/vim-lsp
-git clone https://github.com/prabirshrestha/async.vim.git ~/.vim/pack/lsp/start/async.vim
-
 pip install python-lsp-server
 ```
 
-Run `:GoInstallBinaries` to install [vim-go](https://github.com/fatih/vim-go) binaries.
+Run `:GoInstallBinaries` to install vim-go binaries.

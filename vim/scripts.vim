@@ -44,7 +44,7 @@ elseif s:line =~# '\<bash\>'
   setfiletype sh
 
 " Korn shell
-elseif s:line =~# '\<\%(\ksh\|ksh93\|mksh\|pdksh\)\>'
+elseif s:line =~# '\<\%(ksh\|ksh93\|mksh\|pdksh\)\>'
   let b:is_kornshell = 1
   setfiletype sh
 
