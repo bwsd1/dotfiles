@@ -1,5 +1,7 @@
 #!/bin/bash
 
+alias k='kubectl'
+
 alias cp='cp -i'
 alias mv='mv -i'
 
