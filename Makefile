@@ -129,21 +129,32 @@ ETC_FILES := \
 	modprobe.d/99-hardening.conf \
 	default/grub.d/99-hardening.cfg \
 	systemd/coredump.conf.d/99-hardening.conf \
-	security/limits.d/99-hardening.conf
+	security/limits.d/99-hardening.conf \
+	nftables.conf
 
+# Installing a file under /etc does not activate it, and the grub.d
+# fragment and module blacklist need a reboot rather than a reload. The
+# changed files are collected and handed to activation-hint.sh, which
+# prints only the steps those files require. It never runs them, and
+# never reboots.
+#
+# nftables.conf is installed 0755 to match what Debian ships, so it stays
+# directly runnable via its nft shebang; everything else is 0644.
 install-system: ## install /etc hardening config (needs root)
-	$(Q)for f in $(ETC_FILES); do \
+	$(Q)changed=''; \
+	for f in $(ETC_FILES); do \
 		mkdir -p "$(sysconfdir)/$$(dirname $$f)"; \
-		cmp -s etc/$$f "$(sysconfdir)/$$f" || echo "  INSTALL	etc/$$f"; \
-		$(INSTALL) -m 644 etc/$$f "$(sysconfdir)/$$f"; \
-	done
-	@# 0755 to match the permissions Debian ships, so the file stays
-	@# directly runnable via its "#!/usr/sbin/nft -f" shebang.
-	$(Q)cmp -s etc/nftables.conf $(sysconfdir)/nftables.conf \
-		|| echo "  INSTALL	etc/nftables.conf"
-	$(Q)$(INSTALL) -m 755 etc/nftables.conf $(sysconfdir)/nftables.conf
-	$(Q)echo 'Installed, but not active. See etc/README.md for the'
-	$(Q)echo 'activation step each file needs.'
+		if ! cmp -s etc/$$f "$(sysconfdir)/$$f"; then \
+			echo "  INSTALL	etc/$$f"; \
+			changed="$$changed $$f"; \
+		fi; \
+		case $$f in \
+		nftables.conf) m=755 ;; \
+		*) m=644 ;; \
+		esac; \
+		$(INSTALL) -m $$m etc/$$f "$(sysconfdir)/$$f"; \
+	done; \
+	./scripts/activation-hint.sh $$changed
 
 # Cleanup
 clean: ## clean generated files
