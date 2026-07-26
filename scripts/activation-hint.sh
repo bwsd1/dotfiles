@@ -23,6 +23,7 @@ grub=''
 daemon=''
 login=''
 nft=''
+u2f=''
 reboot=''
 
 for f; do
@@ -33,6 +34,7 @@ for f; do
 	grub.d/*)            grub=1 ;;
 	systemd/coredump*)   daemon=1 ;;
 	security/limits.d/*) login=1 ;;
+	pam.d/sudo)          u2f=1 ;;
 	nftables.conf)       nft=1 ;;
 	esac
 done
@@ -52,6 +54,18 @@ step "$nft"       "sudo systemctl enable --now nftables"
 step "$initramfs" "sudo update-initramfs -u"
 step "$grub"      "sudo update-grub"
 step "$login"     "log out and back in (pam_limits reads limits.d at login)"
+
+# Password sudo keeps working before, during, and after these steps; the
+# pam_u2f line is inert until the module and mapping both exist.
+if [ -n "$u2f" ]; then
+	echo
+	echo "Yubikey sudo (enrol with a root shell open in another pane):"
+	echo "  sudo apt install libpam-u2f"
+	echo "  pamu2fcfg > /tmp/u2f      # first key inserted; touch it"
+	echo "  pamu2fcfg -n >> /tmp/u2f  # second key swapped in; touch it"
+	echo "  sudo install -m 644 /tmp/u2f /etc/security/u2f_mappings && rm /tmp/u2f"
+	echo "  sudo -k && sudo true      # touch either key to verify"
+fi
 
 if [ -n "$reboot" ]; then
 	if [ -n "$grub" ] && [ -n "$initramfs" ]; then

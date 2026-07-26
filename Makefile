@@ -130,6 +130,7 @@ ETC_FILES := \
 	default/grub.d/99-hardening.cfg \
 	systemd/coredump.conf.d/99-hardening.conf \
 	security/limits.d/99-hardening.conf \
+	pam.d/sudo \
 	nftables.conf
 
 # Installing a file under /etc does not activate it, and the grub.d
