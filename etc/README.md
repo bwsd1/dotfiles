@@ -41,10 +41,3 @@ Only the GRUB and modprobe changes need a reboot to take effect or to
 revert. If a kernel command line change prevents boot, press `e` at the
 GRUB menu and remove the parameter for that boot only, then delete the
 file.
-
-## Scope
-
-Kernel and network configuration only. Boot integrity, disk encryption,
-and per-application confinement are out of scope here and are what
-actually bound the result; treat this directory as one layer rather than
-a posture.
