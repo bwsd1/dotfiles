@@ -69,3 +69,23 @@ for file in ~/.{bash_aliases,functions,path,env,bash_prompt}; do
 done
 
 unset -v file
+
+# Start tmux with two side-by-side panes in interactive terminals.
+#
+# Guards, in order: $TMUX would recurse infinitely on a nested shell; $STY
+# means screen(1) is already multiplexing; NO_TMUX=1 is the escape hatch;
+# TERM=linux keeps the VT consoles tmux-free so a broken .tmux.conf still
+# leaves a way in.
+#
+# Deliberately not exec'd: on `&& exit` a tmux failure falls through to a
+# normal prompt with the error visible, whereas `exec tmux` would close the
+# terminal instantly and leave no way to debug it. The cost is one extra
+# bash process per terminal.
+#
+# select-pane -L rather than -t 1 because pane-base-index makes index
+# targeting config-dependent; -L is not.
+if [[ -z "$TMUX" ]] && [[ -z "$STY" ]] && [[ -z "$NO_TMUX" ]] &&
+	[[ "$TERM" != linux ]] && [[ "$TERM" != dumb ]] &&
+	command -v tmux >/dev/null 2>&1; then
+	tmux new-session -s "term-$$" \; split-window -h \; select-pane -L && exit
+fi
