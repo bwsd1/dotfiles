@@ -355,6 +355,32 @@ if executable('pylsp')
         \ })
 endif
 
+" vim-go ships its own gopls client, but it does not serve vim-lsp's
+" <plug>(lsp-*) mappings, so gr reported no server for go files. Passing
+" -remote=auto here matches vim-go's default (autoload/go/config.vim), which
+" makes both clients share one gopls daemon instead of starting a second.
+"
+" gopls is located explicitly rather than trusting PATH: .path expands
+" ${GOPATH} before .env exports it, so $GOPATH/bin never enters PATH and a
+" bare executable('gopls') test fails.
+let s:gopls = 'gopls'
+if !executable(s:gopls)
+  let s:gopls = expand('$GOPATH/bin/gopls')
+endif
+
+if executable(s:gopls)
+  " Anchor the workspace on go.mod so references and symbol search span the
+  " whole module rather than only the current file's directory.
+  au User lsp_setup call lsp#register_server({
+        \ 'name': 'gopls',
+        \ 'cmd': {server_info->[s:gopls, '-remote=auto']},
+        \ 'allowlist': ['go', 'gomod'],
+        \ 'root_uri': {server_info->lsp#utils#path_to_uri(
+        \     lsp#utils#find_nearest_parent_file_directory(
+        \       lsp#utils#get_buffer_path(), 'go.mod'))},
+        \ })
+endif
+
 function! s:on_lsp_buffer_enabled() abort
   setlocal omnifunc=lsp#complete
   setlocal signcolumn=yes
