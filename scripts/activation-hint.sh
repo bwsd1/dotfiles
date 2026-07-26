@@ -30,6 +30,7 @@ for f; do
 	sysctl.d/*)          sysctl=1 ;;
 	modprobe.d/*)        initramfs=1; reboot=1 ;;
 	default/grub.d/*)    grub=1; reboot=1 ;;
+	grub.d/*)            grub=1 ;;
 	systemd/coredump*)   daemon=1 ;;
 	security/limits.d/*) login=1 ;;
 	nftables.conf)       nft=1 ;;

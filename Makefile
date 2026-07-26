@@ -140,6 +140,13 @@ ETC_FILES := \
 #
 # nftables.conf is installed 0755 to match what Debian ships, so it stays
 # directly runnable via its nft shebang; everything else is 0644.
+#
+# When a GRUB password is configured (password_pbkdf2 in grub.d), setting
+# superusers makes every menu entry demand credentials at boot. Appending
+# --unrestricted to the CLASS variable in grub.d/10_linux keeps normal
+# boots passwordless while still requiring the password for the edit (e)
+# and console (c) commands. 10_linux is a dpkg conffile, so a grub-common
+# upgrade can drop the edit; re-running install-system restores it.
 install-system: ## install /etc hardening config (needs root)
 	$(Q)changed=''; \
 	for f in $(ETC_FILES); do \
@@ -154,6 +161,14 @@ install-system: ## install /etc hardening config (needs root)
 		esac; \
 		$(INSTALL) -m $$m etc/$$f "$(sysconfdir)/$$f"; \
 	done; \
+	g="$(sysconfdir)/grub.d/10_linux"; \
+	if [ -f "$$g" ] \
+		&& grep -qs '^[[:space:]]*password_pbkdf2[[:space:]]' "$(sysconfdir)"/grub.d/* \
+		&& ! grep -q -- '--unrestricted' "$$g"; then \
+		echo "  EDIT	$$g (CLASS += --unrestricted)"; \
+		sed -i 's/^CLASS="\(.*\)"/CLASS="\1 --unrestricted"/' "$$g"; \
+		changed="$$changed grub.d/10_linux"; \
+	fi; \
 	./scripts/activation-hint.sh $$changed
 
 # Cleanup
