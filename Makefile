@@ -22,7 +22,7 @@ TARGETS := install-bin \
 	install-vim \
 	install-i3
 
-.PHONY: all default install uninstall clean help configure $(TARGETS)
+.PHONY: all default install uninstall install-system clean help configure $(TARGETS)
 
 .DEFAULT_GOAL := default
 
@@ -113,6 +113,38 @@ install-i3: i3/config ## install i3 config
 	$(Q)cmp -s $< $(DESTDIR)/.config/i3/config || $(call msg,INSTALL,$<)
 	$(Q)$(INSTALL) -m 644 $< $(DESTDIR)/.config/i3/config
 
+# System-wide hardening. The etc/ tree mirrors its destination, so
+# etc/sysctl.d/99-hardening.conf installs to /etc/sysctl.d/99-hardening.conf.
+#
+# These files belong to /etc rather than $HOME, so sysconfdir is rooted at
+# / and not at $(DESTDIR). install-system is deliberately kept out of
+# $(TARGETS): `make install` must never need root or touch anything
+# outside the user's home directory.
+#
+# Test into a throwaway tree with:  make install-system sysconfdir=/tmp/x
+sysconfdir ?= /etc
+
+ETC_FILES := \
+	sysctl.d/99-hardening.conf \
+	modprobe.d/99-hardening.conf \
+	default/grub.d/99-hardening.cfg \
+	systemd/coredump.conf.d/99-hardening.conf \
+	security/limits.d/99-hardening.conf
+
+install-system: ## install /etc hardening config (needs root)
+	$(Q)for f in $(ETC_FILES); do \
+		mkdir -p "$(sysconfdir)/$$(dirname $$f)"; \
+		cmp -s etc/$$f "$(sysconfdir)/$$f" || echo "  INSTALL	etc/$$f"; \
+		$(INSTALL) -m 644 etc/$$f "$(sysconfdir)/$$f"; \
+	done
+	@# 0755 to match the permissions Debian ships, so the file stays
+	@# directly runnable via its "#!/usr/sbin/nft -f" shebang.
+	$(Q)cmp -s etc/nftables.conf $(sysconfdir)/nftables.conf \
+		|| echo "  INSTALL	etc/nftables.conf"
+	$(Q)$(INSTALL) -m 755 etc/nftables.conf $(sysconfdir)/nftables.conf
+	$(Q)echo 'Installed, but not active. See etc/README.md for the'
+	$(Q)echo 'activation step each file needs.'
+
 # Cleanup
 clean: ## clean generated files
 	$(Q)rm -f git/.gitconfig
@@ -125,7 +157,7 @@ uninstall: ## uninstall targets
 
 # Help
 help: ## print this help
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' Makefile | \
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' Makefile | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  %-20s %s\n", $$1, $$2}' | \
 		sort
 	@echo ''
