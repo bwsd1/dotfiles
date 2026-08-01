@@ -42,7 +42,8 @@ install: $(TARGETS)
 configure git/.gitconfig: git/gitconfig.m4 config.local
 	$(Q)$(call msg,GEN,git/.gitconfig)
 	$(Q). ./config.local && $(M4) -DNAME="$$NAME" -DEMAIL="$$EMAIL" \
-		-DEDITOR='$(EDITOR)' -DKEY="$$KEY" $< > git/.gitconfig
+		-DEDITOR='$(EDITOR)' -DKEY="$$KEY" \
+		-DHOOKS='$(CURDIR)/git/hooks' $< > git/.gitconfig
 
 config.local:
 	$(Q)./scripts/mkconfig.sh

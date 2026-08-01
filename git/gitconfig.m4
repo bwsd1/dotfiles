@@ -11,8 +11,9 @@ ifelse(KEY, `', `dnl', `    signingKey = KEY')
     whitespace = space-before-tab,-indent-with-non-tab,trailing-space
     precomposeUnicode = true
     excludesfile = ~/.gitignore_global
-    attributesfile = ~/.gitattributes
-    hooksPath = ~/dotfiles/git/templates/hooks
+    # HOOKS is the checkout's git/hooks, passed by make configure, so
+    # hook edits are live without a reinstall.
+    hooksPath = HOOKS
 
 [init]
   defaultBranch = main
