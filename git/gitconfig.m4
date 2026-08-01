@@ -1,7 +1,7 @@
 [user]
     name = NAME
     email = EMAIL
-    signingKey = KEY
+ifelse(KEY, `', `dnl', `    signingKey = KEY')
 
 [core]
     editor = EDITOR

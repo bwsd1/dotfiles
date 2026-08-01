@@ -1,4 +1,2 @@
-KEY = 0x8767471E3CEC993D
 EDITOR = vim
 GNUPGHOME ?= .gnupg
-USER = 'bwsd'

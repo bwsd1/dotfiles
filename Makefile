@@ -24,7 +24,7 @@ TARGETS := install-bin \
 	install-alacritty \
 	install-dict
 
-.PHONY: all default install uninstall install-system clean help configure $(TARGETS)
+.PHONY: all default install uninstall install-system clean distclean help configure $(TARGETS)
 
 .DEFAULT_GOAL := default
 
@@ -34,11 +34,18 @@ all: $(TARGETS)
 
 install: $(TARGETS)
 
-# Generate .gitconfig from template
-configure git/.gitconfig: git/gitconfig.m4
-	@./scripts/mkconfig.sh
-	$(Q)$(call msg,GEN,$@)
-	$(Q)$(M4) -DNAME='$(NAME)' -DEMAIL='$(EMAIL)' -DEDITOR='$(EDITOR)' -DKEY='$(KEY)' $< > git/.gitconfig
+# Generate .gitconfig from the template. Identity lives in the
+# untracked config.local, sourced in the recipe rather than -included:
+# make reads included files at parse time, so a first run would expand
+# empty values before mkconfig.sh had written them. Re-run
+# scripts/mkconfig.sh (or edit config.local) to change identity.
+configure git/.gitconfig: git/gitconfig.m4 config.local
+	$(Q)$(call msg,GEN,git/.gitconfig)
+	$(Q). ./config.local && $(M4) -DNAME="$$NAME" -DEMAIL="$$EMAIL" \
+		-DEDITOR='$(EDITOR)' -DKEY="$$KEY" $< > git/.gitconfig
+
+config.local:
+	$(Q)./scripts/mkconfig.sh
 
 # Bash configuration files
 BASH_FILES := .bashrc .bash_profile .bash_logout .bash_aliases .path .functions .env .bash_prompt .inputrc
@@ -188,6 +195,9 @@ install-system: ## install /etc hardening config (needs root)
 # Cleanup
 clean: ## clean generated files
 	$(Q)rm -f git/.gitconfig
+
+distclean: clean ## clean, plus remove identity (config.local)
+	$(Q)rm -f config.local
 
 # Uninstall
 uninstall: ## uninstall targets
