@@ -1,0 +1,22 @@
+#%PAM-1.0
+#
+# Managed by dotfiles (etc/pam.d/sudo). This replaces a dpkg conffile, so
+# a sudo package upgrade may prompt about it; re-run `make install-system`
+# to restore it.
+
+# Set up user limits from /etc/security/limits.conf.
+session    required   pam_limits.so
+
+# Yubikey touch instead of password, with password fallback: sufficient
+# means a missing or untouched key falls through to common-auth below.
+# The leading "-" skips the line entirely while libpam-u2f is not
+# installed, so installing this file can never cause a lockout.
+#
+# The authfile must be the root-owned central mapping, never the default
+# per-user ~/.config/Yubico/u2f_keys: a user-writable authfile would let
+# any code running as the user enrol its own key and satisfy sudo.
+-auth      sufficient pam_u2f.so authfile=/etc/security/u2f_mappings cue
+
+@include common-auth
+@include common-account
+@include common-session-noninteractive
