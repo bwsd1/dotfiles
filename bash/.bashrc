@@ -61,6 +61,17 @@ fi
 if command -v terraform >/dev/null 2>&1; then
 	complete -C /usr/bin/terraform terraform
 fi
+
+# fzf: fuzzy C-r history search, C-t file insertion, M-c directory change
+if [[ -r /usr/share/doc/fzf/examples/key-bindings.bash ]]; then
+	source /usr/share/doc/fzf/examples/key-bindings.bash
+	source /usr/share/doc/fzf/examples/completion.bash
+fi
+if command -v rg >/dev/null 2>&1; then
+	# back fzf with ripgrep: fast, honours .gitignore
+	export FZF_DEFAULT_COMMAND='rg --files --hidden --glob !.git'
+	export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+fi
 # source supplementary aliases definitions, functions and PATH
 for file in ~/.{bash_aliases,functions,path,env,bash_prompt}; do
 	if [[ -r "$file" ]] && [[ -f "$file" ]]; then
