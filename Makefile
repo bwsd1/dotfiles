@@ -20,7 +20,9 @@ TARGETS := install-bin \
 	install-psqlrc \
 	install-mycnf \
 	install-vim \
-	install-i3
+	install-i3 \
+	install-alacritty \
+	install-dict
 
 .PHONY: all default install uninstall install-system clean help configure $(TARGETS)
 
@@ -112,6 +114,17 @@ install-i3: i3/config ## install i3 config
 	$(Q)mkdir -p $(DESTDIR)/.config/i3
 	$(Q)cmp -s $< $(DESTDIR)/.config/i3/config || $(call msg,INSTALL,$<)
 	$(Q)$(INSTALL) -m 644 $< $(DESTDIR)/.config/i3/config
+
+# Alacritty terminal configuration
+install-alacritty: alacritty/alacritty.toml ## install alacritty config
+	$(Q)mkdir -p $(DESTDIR)/.config/alacritty
+	$(Q)cmp -s $< $(DESTDIR)/.config/alacritty/alacritty.toml || $(call msg,INSTALL,$<)
+	$(Q)$(INSTALL) -m 644 $< $(DESTDIR)/.config/alacritty/alacritty.toml
+
+# Dict client configuration
+install-dict: dict/dictrc ## install dictrc
+	$(Q)cmp -s $< $(DESTDIR)/.dictrc || $(call msg,INSTALL,$<)
+	$(Q)$(INSTALL) -m 644 $< $(DESTDIR)/.dictrc
 
 # System-wide hardening. The etc/ tree mirrors its destination, so
 # etc/sysctl.d/99-hardening.conf installs to /etc/sysctl.d/99-hardening.conf.

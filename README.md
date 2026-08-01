@@ -1,7 +1,7 @@
 # dotfiles
 
 Personal configuration for a Debian workstation: bash, vim, tmux, git,
-GnuPG, SSH, i3, and a handful of small user scripts.
+GnuPG, SSH, i3, alacritty, dict, and a handful of small user scripts.
 
 ## Installation
 
