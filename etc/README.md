@@ -21,7 +21,7 @@ activation step, listed below, so you can adopt them one at a time.
 | ---- | ------ | -------- |
 | `sysctl.d/99-hardening.conf` | 42 kernel and network settings | `sudo sysctl --system` |
 | `modprobe.d/99-hardening.conf` | Refuse to load unused protocol, filesystem and DMA drivers | `sudo update-initramfs -u`, reboot |
-| `default/grub.d/99-hardening.cfg` | Kernel command line: allocator hardening, IOMMU, RNG | `sudo update-grub`, reboot |
+| `default/grub.d/99-hardening.cfg` | Kernel command line: allocator hardening, IOMMU, RNG, kernel lockdown | `sudo update-grub`, reboot |
 | `systemd/coredump.conf.d/99-hardening.conf` | Never write core dumps to disk | `sudo systemctl daemon-reload` |
 | `security/limits.d/99-hardening.conf` | Core dump hard limit of 0 | next login |
 | `nftables.conf` | Default-deny inbound firewall | `sudo systemctl enable --now nftables` |
