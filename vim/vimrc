@@ -112,9 +112,14 @@ noremap <Leader>y "*y
 set clipboard=unnamedplus
 
 " This Vim build lacks +clipboard, so 'clipboard' and the +/* registers
-" cannot reach X11 on their own. Mirror every yank to the CLIPBOARD
-" selection with xclip so other programs (browser, tmux) can paste it.
-if !has('clipboard') && executable('xclip') && exists('$DISPLAY')
+" cannot reach X11 on their own. Mirror every yank so other programs
+" (browser, tmux) can paste it. Inside tmux, load-buffer -w hands the
+" text to tmux, which forwards it to the terminal via OSC 52, keeping
+" Alacritty the sole CLIPBOARD owner; a raw xclip here grabbed the
+" selection on every yank and raced tmux's own OSC 52 stores, logging
+" "Unable to store text in clipboard" in Alacritty and leaving an
+" orphaned xclip process behind.
+if !has('clipboard')
   function! s:YankToClipboard() abort
     if v:event.operator !=# 'y'
       return
@@ -123,7 +128,11 @@ if !has('clipboard') && executable('xclip') && exists('$DISPLAY')
     if v:event.regtype ==# 'V'
       let l:text .= "\n"
     endif
-    call system('xclip -selection clipboard', l:text)
+    if exists('$TMUX')
+      call system('tmux load-buffer -w -', l:text)
+    elseif executable('xclip') && exists('$DISPLAY')
+      call system('xclip -selection clipboard', l:text)
+    endif
   endfunction
 
   augroup clipboard_mirror

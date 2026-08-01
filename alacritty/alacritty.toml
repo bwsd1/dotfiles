@@ -10,7 +10,7 @@ decorations = "none"
   lines = 25
 
 [font]
-size = 10
+size = 13
 builtin_box_drawing = true
 
   [font.normal]
@@ -38,7 +38,11 @@ builtin_box_drawing = true
   y = 0
 
 [selection]
-save_to_clipboard = true
+# Leave CLIPBOARD to tmux's OSC 52 path (set-clipboard external).
+# Storing PRIMARY and CLIPBOARD back-to-back on every selection races
+# the ownership handoff and logs "Unable to store text in clipboard".
+# Ctrl+Shift+C still copies the selection on demand.
+save_to_clipboard = false
 
 [cursor]
 unfocused_hollow = true
