@@ -1,46 +1,11 @@
 #!/bin/sh
 #
-# This hook adds prefix "<repo>/<pkgname>: " to the commit message when
-# committing changes of a single package.
-#
-# original source :https://git.alpinelinux.org/aports
-# from .githooks/prepare-commit-msg?id=0c3de9f5d9d3
-#
-MSG_FILE="$1"
-SOURCE="$2"
-
-longest_common_prefix() {
-	awk -F/ '
-		(NR == 1) { split($0, prefix); prefix_len = NF }
-		(NR > 1) {
-			for (i = 1; i <= prefix_len; i++) {
-				if (prefix[i] != $i) {
-					prefix_len = i - 1; break
-				}
-			}
-		}
-		(prefix_len == 0) { exit }
-		END {
-			res = prefix[1]
-			for (i = 2; i <= prefix_len; i++) {
-				res = res FS prefix[i]
-			}
-			print(res)
-		}'
-}
-
-prepend_msg() {
-	prefix="$1"
-	printf '%s\n%s\n' "$prefix" "$(cat "$MSG_FILE")" > "$MSG_FILE"
-}
-
-# Do nothing if message has been given using -m, template, merge etc.
-[ -z "$SOURCE" ] || exit 0
-
-lcp=$(git diff-index --name-only --cached HEAD | longest_common_prefix)
-
-case "$lcp" in
-	[!.]*/*) prepend_msg "$(echo "$lcp" | cut -d/ -f1-2): ";;
-esac
-
+# A global core.hooksPath replaces per-repository hooks, so chain to the
+# repository's own hook when it ships one. --git-common-dir rather than
+# --git-path hooks: the latter resolves core.hooksPath and would point
+# this hook back at itself.
+repo_hook="$(git rev-parse --git-common-dir)/hooks/prepare-commit-msg"
+if [ -x "$repo_hook" ]; then
+	exec "$repo_hook" "$@"
+fi
 exit 0

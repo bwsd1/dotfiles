@@ -67,4 +67,14 @@ for file in $(modified_files); do
 done
 
 # abort the commit if there are whitespace errors in staged files
-exec git diff-index --check --cached "$SHA" --
+git diff-index --check --cached "$SHA" --
+
+# A global core.hooksPath replaces per-repository hooks, so chain to the
+# repository's own hook when it ships one. --git-common-dir rather than
+# --git-path hooks: the latter resolves core.hooksPath and would point
+# this hook back at itself.
+repo_hook="$(git rev-parse --git-common-dir)/hooks/pre-commit"
+if [ -x "$repo_hook" ]; then
+	exec "$repo_hook" "$@"
+fi
+exit 0
