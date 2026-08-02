@@ -193,6 +193,9 @@ endfunction
 
 " When another live Vim already edits the file, switch to its tmux pane
 " and make it :drop the file instead of prompting over the swap file.
+" The request travels as a mailbox file plus SIGUSR1, never send-keys:
+" injected keystrokes land in whatever mode the target is in and can
+" end up inserted as buffer text.
 function! s:SwapCollision(file) abort
   let info = swapinfo(v:swapname)
   let pid = get(info, 'pid', 0)
@@ -207,18 +210,32 @@ function! s:SwapCollision(file) abort
   if empty(pane)
     return
   endif
-  " CTRL-\ CTRL-N reaches Normal mode from any mode; :drop reuses the
-  " window already showing the buffer.
-  call system(printf(
-        \ 'tmux send-keys -t %s C-\\ C-n %s Enter \; select-window -t %s \; select-pane -t %s',
-        \ pane, shellescape(':drop '.fnameescape(a:file)), pane, pane))
+  call writefile([a:file], s:swapdir.'/drop.'.pid, 'a')
+  call system('kill -USR1 '.pid)
+  call system(printf('tmux select-window -t %s \; select-pane -t %s',
+        \ pane, pane))
   let v:swapchoice = 'q'
 endfunction
 
-if exists('*swapinfo') && executable('tmux')
+" Owner side: :drop every file queued in this instance's mailbox.
+function! s:DropRequested() abort
+  let box = s:swapdir.'/drop.'.getpid()
+  if !filereadable(box)
+    return
+  endif
+  let files = readfile(box)
+  call delete(box)
+  stopinsert
+  for file in files
+    execute 'drop' fnameescape(file)
+  endfor
+endfunction
+
+if exists('*swapinfo') && exists('##SigUSR1') && executable('tmux')
   augroup SwapCollision
     autocmd!
     autocmd SwapExists * call s:SwapCollision(expand('<afile>:p'))
+    autocmd SigUSR1 * call s:DropRequested()
   augroup END
 endif
 " folding
