@@ -245,7 +245,10 @@ endif
 " watcher (job_start over inotifywait) would be instant instead of
 " <=2s, but costs an external dependency plus per-buffer watcher
 " lifecycle management.
-set autoread
+"
+" 'autoread' must stay off: when set, Vim reloads clean buffers
+" without consulting FileChangedShell, bypassing the append-only
+" policy in s:FileChanged.
 
 function! s:CheckTime() abort
   if getcmdwintype() ==# '' && mode() !~# '[cr!]'
@@ -253,16 +256,32 @@ function! s:CheckTime() abort
   endif
 endfunction
 
-" Reload clean buffers; on a conflict (unsaved local edits) keep the
-" buffer and raise a statusline flag instead of a dialog.  Resolve
-" with :e! to take the disk version, or :w and answer y to keep ours.
+" Reload only when the disk change strictly extends the buffer (an
+" appended-to log, say): reloading then cannot discard anything.  Any
+" other change - rewrite, truncation, deletion, or unsaved local
+" edits - keeps the buffer and raises the statusline flag instead.
+" Resolve with :e! to take the disk version, or :w to keep the buffer
+" (Vim still warns before overwriting).
 function! s:FileChanged() abort
-  if v:fcs_reason ==# 'conflict' || v:fcs_reason ==# 'deleted'
-    let b:external_change = v:fcs_reason
+  let buf = str2nr(expand('<abuf>'))
+  if v:fcs_reason ==# 'time' || v:fcs_reason ==# 'mode'
     let v:fcs_choice = ''
-  else
+  elseif v:fcs_reason ==# 'changed' && s:IsAppend(buf, expand('<afile>:p'))
     let v:fcs_choice = 'reload'
+  else
+    " setbufvar: <afile>'s buffer need not be the current buffer
+    call setbufvar(buf, 'external_change', v:fcs_reason)
+    let v:fcs_choice = ''
   endif
+endfunction
+
+" True when the buffer's lines are a prefix of the file's.
+function! s:IsAppend(buf, file) abort
+  if !filereadable(a:file)
+    return 0
+  endif
+  let buflines = getbufline(a:buf, 1, '$')
+  return readfile(a:file, '', len(buflines)) ==# buflines
 endfunction
 
 if has('timers') && !exists('s:checktime_timer')
@@ -297,8 +316,8 @@ set statusline+=%#LineNr#
 set statusline+=\ %F
 " Denote modified, unsaved buffer with a plus (+) sign
 set statusline+=%m
-" Set by s:FileChanged when the file changed on disk under unsaved
-" local edits
+" Set by s:FileChanged when the file changed on disk and reloading
+" would discard buffer content
 set statusline+=%{exists('b:external_change')?'[changed-on-disk]':''}
 " Right-align statusline components below
 set statusline+=%=
