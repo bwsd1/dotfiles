@@ -238,6 +238,47 @@ if exists('*swapinfo') && exists('##SigUSR1') && executable('tmux')
     autocmd SigUSR1 * call s:DropRequested()
   augroup END
 endif
+
+" Reload buffers changed outside Vim as soon as it is safe (see
+" s:FileChanged); events alone only fire at focus and idle boundaries,
+" so a timer catches changes made while actively editing.  An inotify
+" watcher (job_start over inotifywait) would be instant instead of
+" <=2s, but costs an external dependency plus per-buffer watcher
+" lifecycle management.
+set autoread
+
+function! s:CheckTime() abort
+  if getcmdwintype() ==# '' && mode() !~# '[cr!]'
+    silent! checktime
+  endif
+endfunction
+
+" Reload clean buffers; on a conflict (unsaved local edits) keep the
+" buffer and raise a statusline flag instead of a dialog.  Resolve
+" with :e! to take the disk version, or :w and answer y to keep ours.
+function! s:FileChanged() abort
+  if v:fcs_reason ==# 'conflict' || v:fcs_reason ==# 'deleted'
+    let b:external_change = v:fcs_reason
+    let v:fcs_choice = ''
+  else
+    let v:fcs_choice = 'reload'
+  endif
+endfunction
+
+if has('timers') && !exists('s:checktime_timer')
+  let s:checktime_timer = timer_start(2000, {-> s:CheckTime()}, {'repeat': -1})
+endif
+
+augroup ExternalChange
+  autocmd!
+  autocmd FocusGained,BufEnter,WinEnter * silent! checktime
+  autocmd FileChangedShell * call s:FileChanged()
+  " unsilent: the reload usually comes from 'silent! checktime', which
+  " would otherwise swallow the message
+  autocmd FileChangedShellPost * unsilent echomsg 'Reloaded '.expand('<afile>:t')
+  autocmd BufReadPost,BufWritePost * unlet! b:external_change
+augroup END
+
 " folding
 set foldignore=
 " re-indent from previous line
@@ -256,6 +297,9 @@ set statusline+=%#LineNr#
 set statusline+=\ %F
 " Denote modified, unsaved buffer with a plus (+) sign
 set statusline+=%m
+" Set by s:FileChanged when the file changed on disk under unsaved
+" local edits
+set statusline+=%{exists('b:external_change')?'[changed-on-disk]':''}
 " Right-align statusline components below
 set statusline+=%=
 set statusline+=%#CursorColumn#
