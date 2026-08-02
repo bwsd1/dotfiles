@@ -158,8 +158,69 @@ if has('unix')
   execute 'set backupdir^='.s:backupdir
 endif
 
-" disable swap files
-set noswapfile
+" Swap files double as cross-instance locks (see s:SwapCollision);
+" the trailing '//' makes swap file names encode the full path.
+let s:swapdir = $HOME.'/.vim/swap'
+if !isdirectory(s:swapdir)
+  call mkdir(s:swapdir, 'p', 0700)
+endif
+execute 'set directory^='.s:swapdir.'//'
+
+" tmux pane whose process tree contains pid, or '' if there is none.
+function! s:PaneOfPid(pid) abort
+  let panes = {}
+  for line in systemlist("tmux list-panes -a -F '#{pane_pid} #{pane_id}'")
+    let parts = split(line)
+    if len(parts) == 2
+      let panes[parts[0]] = parts[1]
+    endif
+  endfor
+  let pid = a:pid
+  while pid > 1 && !empty(panes)
+    if has_key(panes, pid)
+      return panes[pid]
+    endif
+    let stat = '/proc/'.pid.'/stat'
+    if !filereadable(stat)
+      return ''
+    endif
+    " ppid is the field after the parenthesized comm and the state.
+    let pid = str2nr(matchstr(get(readfile(stat, '', 1), 0, ''),
+          \ '.*)\s\+\S\+\s\+\zs\d\+'))
+  endwhile
+  return ''
+endfunction
+
+" When another live Vim already edits the file, switch to its tmux pane
+" and make it :drop the file instead of prompting over the swap file.
+function! s:SwapCollision(file) abort
+  let info = swapinfo(v:swapname)
+  let pid = get(info, 'pid', 0)
+  " Fall through to the normal prompt unless the owner is a live Vim on
+  " this host: a dead owner may mean the swap file is worth recovering.
+  if pid <= 0 || get(info, 'host', '') !=# hostname()
+        \ || !filereadable('/proc/'.pid.'/comm')
+        \ || get(readfile('/proc/'.pid.'/comm', '', 1), 0, '') !~# 'vim'
+    return
+  endif
+  let pane = s:PaneOfPid(pid)
+  if empty(pane)
+    return
+  endif
+  " CTRL-\ CTRL-N reaches Normal mode from any mode; :drop reuses the
+  " window already showing the buffer.
+  call system(printf(
+        \ 'tmux send-keys -t %s C-\\ C-n %s Enter \; select-window -t %s \; select-pane -t %s',
+        \ pane, shellescape(':drop '.fnameescape(a:file)), pane, pane))
+  let v:swapchoice = 'q'
+endfunction
+
+if exists('*swapinfo') && executable('tmux')
+  augroup SwapCollision
+    autocmd!
+    autocmd SwapExists * call s:SwapCollision(expand('<afile>:p'))
+  augroup END
+endif
 " folding
 set foldignore=
 " re-indent from previous line
