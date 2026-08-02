@@ -19,52 +19,6 @@
 " https://github.com/altercation/vim-colors-solarized
 
 "}}}
-" Requirements And Recommendations:"{{{
-" ----------------------------------------------------------------------------
-" Requirements
-"   - gVim 7.3+ on Linux, Mac and Windows.
-"   - Vim 7.3+ on Linux and Mac, using a terminal that supports 256 colours.
-"
-" Due to the limited 256 palette, colours in Vim and gVim will still be slightly
-" different.
-"
-" In order to have Vim use the same colours as gVim (the way this colour scheme
-" is intended), it is recommended that you define the basic 16 colours in your
-" terminal.
-"
-" For Linux users (rxvt-unicode, xterm):
-"
-" 1.  Add the default palette to ~/.Xresources:
-"
-"         https://gist.github.com/3278077
-"
-"     or alternatively, add the reduced contrast palette to ~/.Xresources:
-"
-"         https://gist.github.com/w0ng/16e33902508b4a0350ae
-"
-" 2.  Add to ~/.vimrc:
-"
-"         let g:hybrid_custom_term_colors = 1
-"         let g:hybrid_reduced_contrast = 1 " Remove this line if using the default palette.
-"         colorscheme hybrid
-"
-" For OSX users (iTerm):
-"
-" 1.  Import the default colour preset into iTerm:
-"
-"         https://raw.githubusercontent.com/w0ng/dotfiles/master/iterm2/hybrid.itermcolors
-"
-"     or alternatively, import the reduced contrast color preset into iTerm:
-"
-"         https://raw.githubusercontent.com/w0ng/dotfiles/master/iterm2/hybrid-reduced-contrast.itermcolors
-"
-" 2.  Add to ~/.vimrc:
-"
-"         let g:hybrid_custom_term_colors = 1
-"         let g:hybrid_reduced_contrast = 1 " Remove this line if using the default palette.
-"         colorscheme hybrid
-
-"}}}
 " Initialisation:"{{{
 " ----------------------------------------------------------------------------
 
@@ -152,15 +106,9 @@ let s:palette.cterm.darkpurple = { 'dark' : "53"               , 'light' : "53" 
 "}}}
 " Formatting Options:"{{{
 " ----------------------------------------------------------------------------
-let s:none   = "NONE"
-let s:t_none = "NONE"
-let s:n      = "NONE"
-let s:c      = ",undercurl"
 let s:r      = ",reverse"
 let s:s      = ",standout"
-let s:b      = ",bold"
 let s:u      = ",underline"
-let s:i      = ",italic"
 
 "}}}
 " Highlighting Primitives:"{{{
@@ -223,39 +171,9 @@ call s:build_prim('fg', 'darkred')
 call s:build_prim('fg', 'darkpurple')
 
 exe "let s:fmt_none = ' gui=NONE".          " cterm=NONE".          " term=NONE"        ."'"
-exe "let s:fmt_bold = ' gui=NONE".s:b.      " cterm=NONE".s:b.      " term=NONE".s:b    ."'"
-exe "let s:fmt_bldi = ' gui=NONE".s:b.      " cterm=NONE".s:b.      " term=NONE".s:b    ."'"
 exe "let s:fmt_undr = ' gui=NONE".s:u.      " cterm=NONE".s:u.      " term=NONE".s:u    ."'"
-exe "let s:fmt_undb = ' gui=NONE".s:u.s:b.  " cterm=NONE".s:u.s:b.  " term=NONE".s:u.s:b."'"
-exe "let s:fmt_undi = ' gui=NONE".s:u.      " cterm=NONE".s:u.      " term=NONE".s:u    ."'"
-exe "let s:fmt_curl = ' gui=NONE".s:c.      " cterm=NONE".s:c.      " term=NONE".s:c    ."'"
-exe "let s:fmt_ital = ' gui=NONE".s:i.      " cterm=NONE".s:i.      " term=NONE".s:i    ."'"
 exe "let s:fmt_stnd = ' gui=NONE".s:s.      " cterm=NONE".s:s.      " term=NONE".s:s    ."'"
 exe "let s:fmt_revr = ' gui=NONE".s:r.      " cterm=NONE".s:r.      " term=NONE".s:r    ."'"
-exe "let s:fmt_revb = ' gui=NONE".s:r.s:b.  " cterm=NONE".s:r.s:b.  " term=NONE".s:r.s:b."'"
-
-exe "let s:sp_none       = ' guisp=". s:none                            ."'"
-exe "let s:sp_foreground = ' guisp=". s:palette.gui.foreground[s:style] ."'"
-exe "let s:sp_background = ' guisp=". s:palette.gui.background[s:style] ."'"
-exe "let s:sp_selection  = ' guisp=". s:palette.gui.selection[s:style]  ."'"
-exe "let s:sp_line       = ' guisp=". s:palette.gui.line[s:style]       ."'"
-exe "let s:sp_comment    = ' guisp=". s:palette.gui.comment[s:style]    ."'"
-exe "let s:sp_red        = ' guisp=". s:palette.gui.red[s:style]        ."'"
-exe "let s:sp_orange     = ' guisp=". s:palette.gui.orange[s:style]     ."'"
-exe "let s:sp_yellow     = ' guisp=". s:palette.gui.yellow[s:style]     ."'"
-exe "let s:sp_green      = ' guisp=". s:palette.gui.green[s:style]      ."'"
-exe "let s:sp_aqua       = ' guisp=". s:palette.gui.aqua[s:style]       ."'"
-exe "let s:sp_blue       = ' guisp=". s:palette.gui.blue[s:style]       ."'"
-exe "let s:sp_purple     = ' guisp=". s:palette.gui.purple[s:style]     ."'"
-exe "let s:sp_window     = ' guisp=". s:palette.gui.window[s:style]     ."'"
-exe "let s:sp_addbg      = ' guisp=". s:palette.gui.addbg[s:style]      ."'"
-exe "let s:sp_addfg      = ' guisp=". s:palette.gui.addfg[s:style]      ."'"
-exe "let s:sp_changebg   = ' guisp=". s:palette.gui.changebg[s:style]   ."'"
-exe "let s:sp_changefg   = ' guisp=". s:palette.gui.changefg[s:style]   ."'"
-exe "let s:sp_darkblue   = ' guisp=". s:palette.gui.darkblue[s:style]   ."'"
-exe "let s:sp_darkcyan   = ' guisp=". s:palette.gui.darkcyan[s:style]   ."'"
-exe "let s:sp_darkred    = ' guisp=". s:palette.gui.darkred[s:style]    ."'"
-exe "let s:sp_darkpurple = ' guisp=". s:palette.gui.darkpurple[s:style] ."'"
 
 "}}}
 " Vim Highlighting: (see :help highlight-groups)"{{{
@@ -303,10 +221,7 @@ exe "hi! Title"         .s:fg_yellow      .s:bg_none        .s:fmt_none
 exe "hi! Visual"        .s:fg_none        .s:bg_selection   .s:fmt_none
 "   VisualNos"
 exe "hi! WarningMsg"    .s:fg_red         .s:bg_none        .s:fmt_none
-
-hi LongLineWarning  guifg=NONE        guibg=#371F1C     gui=underline ctermfg=NONE        ctermbg=NONE        cterm=underline
 "   WildMenu"
-
 
 "}}}
 " Generic Syntax Highlighting: (see :help group-name)"{{{

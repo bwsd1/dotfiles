@@ -14,11 +14,6 @@ endif
 " extension stripped off
 function! s:StripRepeat()
 
-  " Check we have the fnameescape() function
-  if !exists('*fnameescape')
-    return
-  endif
-
   " Expand the match result
   let l:fn = expand('<afile>')
 
@@ -63,11 +58,6 @@ augroup filetypedetect
         \,?*.{bak,example,in,new,old,orig,sample,test}
         \,?*.dpkg-{bak,dist,new,old}
         \ call s:StripRepeat()
-
-  " msmtp rc files
-  autocmd BufNewFile,BufRead
-        \ ?*.msmtprc
-        \ setfiletype msmtp
 
   " Apache config
   autocmd BufNewFile,BufRead
@@ -600,11 +590,8 @@ augroup filetypedetect
         \|  runtime scripts.vim
         \|endif
 
-  " If supported, on leaving insert mode, check whether the first line was
-  " changed and looks like a shebang format, and if so, re-run filetype
-  " detection
-  if v:version > 700
-    autocmd InsertLeave * call s:CheckShebang()
-  endif
+  " On leaving insert mode, check whether the first line was changed and looks
+  " like a shebang format, and if so, re-run filetype detection
+  autocmd InsertLeave * call s:CheckShebang()
 
 augroup END

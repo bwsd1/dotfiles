@@ -1,5 +1,5 @@
 " :compiler support for GNU Bash syntax checking with `bash -n`
-if exists('current_compiler') || &compatible || !has('patch-7.4.191')
+if exists('current_compiler') || &compatible
   finish
 endif
 let current_compiler = 'bash'

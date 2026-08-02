@@ -4,12 +4,7 @@ if !exists('b:undo_indent')
 else
   let b:undo_indent .= '|setlocal expandtab<'
 endif
-if v:version > 703
-      \ || v:version == 703 && has('patch629')
-  setlocal shiftwidth=0
-else
-  let &l:shiftwidth = &l:tabstop
-endif
+setlocal shiftwidth=0
 let b:undo_indent .= '|setlocal shiftwidth<'
 if &softtabstop != -1
   let &l:softtabstop = &l:shiftwidth
