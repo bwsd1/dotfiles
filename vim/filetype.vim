@@ -314,12 +314,14 @@ augroup filetypedetect
         \,Makefile.PL
         \ setfiletype perl
 
-  " Perl 6 files
+  " Raku (Perl 6) files
   autocmd BufNewFile,BufRead
         \ ?*.p6
         \,?*.pl6
         \,?*.pm6
-        \ setfiletype perl6
+        \,?*.raku
+        \,?*.rakumod
+        \ setfiletype raku
 
   " PHP files
   autocmd BufNewFile,BufRead
@@ -331,10 +333,10 @@ augroup filetypedetect
         \ ?*.pod
         \ setfiletype pod
 
-  " Perl 6 POD files
+  " Raku POD files
   autocmd BufNewFile,BufRead
         \ ?*.pod6
-        \ setfiletype pod6
+        \ setfiletype raku
 
   " Python files
   autocmd BufNewFile,BufRead
@@ -574,7 +576,7 @@ augroup filetypedetect
         \,?*.conf
         \,?*.config
         \,/etc/*
-        \ setfiletype config
+        \ setfiletype conf
 
   autocmd BufNewFile,BufRead
         \ */log/*

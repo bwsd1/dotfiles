@@ -18,9 +18,9 @@ if s:line =~# '\<[gm]\=awk\>'
 elseif s:line =~# '\<perl5\=\>'
   setfiletype perl
 
-" Perl 6
-elseif s:line =~# '\<perl6\>'
-  setfiletype perl6
+" Raku (Perl 6)
+elseif s:line =~# '\<\%(perl6\|raku\|rakudo\)\>'
+  setfiletype raku
 
 " PHP
 elseif s:line =~# '\<php\>'
