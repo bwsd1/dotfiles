@@ -32,7 +32,7 @@ activation step, listed below, so you can adopt them one at a time.
 `pam.d/sudo` adds `pam_u2f` as `sufficient` above the password stack:
 touch the key to authenticate, or let it fall through to the normal
 password prompt. The line is prefixed with `-`, so it is skipped while
-`libpam-u2f` is not installed — installing the file alone changes
+`libpam-u2f` is not installed. Installing the file alone changes
 nothing and cannot lock you out.
 
 Any number of keys can be enrolled for the same user; they end up as
@@ -60,9 +60,33 @@ staging it in /tmp is safe. Enrol a key later by appending another
 The mapping deliberately lives in root-owned `/etc/security/u2f_mappings`
 rather than the default `~/.config/Yubico/u2f_keys`: a user-writable
 authfile would let any code running as the user enrol its own key and
-satisfy sudo. Note the trade-off: touch-to-sudo replaces a knowledge
-factor with possession and presence, so a key left in the slot lets
-anyone at an unlocked session escalate by touching it.
+satisfy sudo. The trade-off: touch-to-sudo replaces a knowledge factor
+with possession and presence, so a key left in the slot lets anyone at
+an unlocked session escalate by touching it.
+
+## Firmware checklist
+
+The boot-path hardening above leans on firmware state that no file in
+this tree can install. It lives in NVRAM, and this board (Gigabyte Z790
+D DDR4) offers no way to set it from Linux: there is no
+`/sys/class/firmware-attributes/`, and `fwupdmgr get-bios-settings`
+reports the system unsupported. Settings can only be changed in firmware
+setup (`Del` at boot), so they are recorded here as a checklist to
+re-apply after a firmware update or CMOS clear:
+
+- Administrator password set (with BIOS Features on Gigabyte boards).
+  Without it, anyone at the console disables Secure Boot or boots their
+  own media, and the GRUB password downstream is moot. The password
+  itself never goes in this repository.
+- Secure Boot enabled, standard mode.
+- Boot order fixed to the internal disk. Confirm that the one-shot boot
+  menu (`F12`) and firmware setup both prompt for the password.
+
+Know the limit: clearing CMOS (the jumper, or pulling the battery with
+the case open) resets the password along with everything else on this
+list. On a desktop it defends against tool-less, minutes-long console
+access, not a screwdriver, and the drive itself stays readable in
+another machine until the disk is encrypted.
 
 ## Rollback
 
