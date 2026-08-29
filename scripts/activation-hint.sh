@@ -21,6 +21,7 @@ sysctl=''
 initramfs=''
 grub=''
 daemon=''
+keyd=''
 login=''
 nft=''
 u2f=''
@@ -33,6 +34,7 @@ for f; do
 	default/grub.d/*)    grub=1; reboot=1 ;;
 	grub.d/*)            grub=1 ;;
 	systemd/coredump*)   daemon=1 ;;
+	systemd/system/keyd.service.d/*) daemon=1; keyd=1 ;;
 	security/limits.d/*) login=1 ;;
 	pam.d/sudo)          u2f=1 ;;
 	nftables.conf)       nft=1 ;;
@@ -50,6 +52,7 @@ echo
 echo "Installed. Nothing is active yet; run what applies:"
 step "$sysctl"    "sudo sysctl --system"
 step "$daemon"    "sudo systemctl daemon-reload"
+step "$keyd"      "sudo systemctl restart keyd"
 step "$nft"       "sudo systemctl enable --now nftables"
 step "$initramfs" "sudo update-initramfs -u"
 step "$grub"      "sudo update-grub"
