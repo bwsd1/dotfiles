@@ -14,10 +14,16 @@ set show-all-if-ambiguous on
 
 set editing-mode vi
 $if mode=vi
+    # vi-unix-word-rubout, the vi default for Control-w, will not delete
+    # text from before where the current insert began, so after moving
+    # the cursor it does nothing. unix-word-rubout always deletes the
+    # whitespace-delimited word before the cursor.
     set keymap vi-command
     Control-l: clear-screen
+    Control-w: unix-word-rubout
     set keymap vi-insert
     Control-l: clear-screen
+    Control-w: unix-word-rubout
 $endif
 
 set skip-completed-text on
