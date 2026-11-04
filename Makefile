@@ -149,6 +149,7 @@ ETC_FILES := \
 	sysctl.d/99-hardening.conf \
 	modprobe.d/99-hardening.conf \
 	default/grub.d/99-hardening.cfg \
+	default/grub.d/50-boot.cfg \
 	systemd/coredump.conf.d/99-hardening.conf \
 	systemd/system/keyd.service.d/99-hardening.conf \
 	security/limits.d/99-hardening.conf \

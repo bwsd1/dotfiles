@@ -22,6 +22,7 @@ activation step, listed below, so you can adopt them one at a time.
 | `sysctl.d/99-hardening.conf` | 42 kernel and network settings | `sudo sysctl --system` |
 | `modprobe.d/99-hardening.conf` | Refuse to load unused protocol, filesystem and DMA drivers | `sudo update-initramfs -u`, reboot |
 | `default/grub.d/99-hardening.cfg` | Kernel command line: allocator hardening, IOMMU, RNG, kernel lockdown | `sudo update-grub`, reboot |
+| `default/grub.d/50-boot.cfg` | GRUB menu timeout 1 s instead of 5 s | `sudo update-grub` |
 | `systemd/coredump.conf.d/99-hardening.conf` | Never write core dumps to disk | `sudo systemctl daemon-reload` |
 | `security/limits.d/99-hardening.conf` | Core dump hard limit of 0 | next login |
 | `nftables.conf` | Default-deny inbound firewall | `sudo systemctl enable --now nftables` |
@@ -88,6 +89,43 @@ list. On a desktop it defends against tool-less, minutes-long console
 access, not a screwdriver, and the drive itself stays readable in
 another machine until the disk is encrypted.
 
+## Boot time
+
+Two unit changes that `install-system` cannot carry, because they are
+systemd state rather than files. Measured on 2026-11-04 with
+`systemd-analyze critical-chain`, they held `graphical.target` back by
+about 7 of its 9.5 s in userspace:
+
+```sh
+sudo systemctl mask NetworkManager-wait-online.service
+sudo systemctl disable docker.service   # docker.socket stays enabled
+```
+
+`NetworkManager-wait-online` waited 6 s for DHCP on `enp5s0`, and
+everything ordered after `network-online.target` waited with it: docker,
+exim4 and cups-browsed. None of them needs a routable network at boot.
+exim4 listens only on 127.0.0.1 and ::1, cups-browsed has no printers
+to find, and docker starts on first use through `docker.socket`.
+
+Two things change. A container with a restart policy no longer starts at
+boot; none has one now (`docker inspect -f '{{.HostConfig.RestartPolicy.Name}}'`).
+A service added later that really needs the network at boot gets only
+`network.target` semantics until the mask is lifted.
+
+Verify after a reboot:
+
+```sh
+systemd-analyze
+systemd-analyze critical-chain
+```
+
+Rollback:
+
+```sh
+sudo systemctl unmask NetworkManager-wait-online.service
+sudo systemctl enable docker.service
+```
+
 ## Rollback
 
 Delete the file and re-run its activation step. Specifically:
@@ -96,6 +134,7 @@ Delete the file and re-run its activation step. Specifically:
 sudo rm /etc/sysctl.d/99-hardening.conf   && sudo sysctl --system
 sudo rm /etc/modprobe.d/99-hardening.conf && sudo update-initramfs -u
 sudo rm /etc/default/grub.d/99-hardening.cfg && sudo update-grub
+sudo rm /etc/default/grub.d/50-boot.cfg && sudo update-grub
 sudo systemctl disable --now nftables && sudo nft flush ruleset
 sudo rm /etc/security/u2f_mappings    # sudo reverts to password only
 ```
