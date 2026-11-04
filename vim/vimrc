@@ -105,12 +105,9 @@ set textwidth=80
 
 " This Vim build lacks +clipboard, so 'clipboard' and the +/* registers
 " cannot reach X11 on their own. Mirror every yank so other programs
-" (browser, tmux) can paste it. Inside tmux, load-buffer -w hands the
-" text to tmux, which forwards it to the terminal via OSC 52, keeping
-" Alacritty the sole CLIPBOARD owner; a raw xclip here grabbed the
-" selection on every yank and raced tmux's own OSC 52 stores, logging
-" "Unable to store text in clipboard" in Alacritty and leaving an
-" orphaned xclip process behind.
+" (browser, tmux) can paste it. xclip is the sole CLIPBOARD writer:
+" Alacritty ignores OSC 52 copies, so tmux load-buffer -w would not reach
+" X11. load-buffer without -w keeps the yank pasteable with prefix-].
 if !has('clipboard')
   function! s:YankToClipboard() abort
     if v:event.operator !=# 'y'
@@ -121,8 +118,9 @@ if !has('clipboard')
       let l:text .= "\n"
     endif
     if exists('$TMUX')
-      call system('tmux load-buffer -w -', l:text)
-    elseif executable('xclip') && exists('$DISPLAY')
+      call system('tmux load-buffer -', l:text)
+    endif
+    if executable('xclip') && exists('$DISPLAY')
       call system('xclip -selection clipboard', l:text)
     endif
   endfunction

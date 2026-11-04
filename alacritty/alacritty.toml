@@ -38,9 +38,9 @@ builtin_box_drawing = true
   y = 0
 
 [selection]
-# Leave CLIPBOARD to tmux's OSC 52 path (set-clipboard external).
-# Storing PRIMARY and CLIPBOARD back-to-back on every selection races
-# the ownership handoff and logs "Unable to store text in clipboard".
+# xclip is the sole CLIPBOARD writer (tmux copy-command, vim, Claude
+# Code). Alacritty taking CLIPBOARD as well, on selection or via OSC 52,
+# races xclip's ownership and logs "Unable to store text in clipboard".
 # Ctrl+Shift+C still copies the selection on demand.
 save_to_clipboard = false
 
@@ -54,6 +54,10 @@ unfocused_hollow = true
 live_config_reload = true
 
 [terminal]
+# Ignore OSC 52 copies: Claude Code runs xclip and emits OSC 52 for the
+# same copy, and the two stores race for CLIPBOARD. Disabled also refuses
+# OSC 52 clipboard reads, as the default (OnlyCopy) does.
+osc52 = "Disabled"
 
 [terminal.shell]
 program = "/bin/bash"
