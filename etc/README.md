@@ -101,7 +101,8 @@ sudo systemctl mask NetworkManager-wait-online.service
 sudo systemctl disable docker.service   # docker.socket stays enabled
 ```
 
-`NetworkManager-wait-online` waited 6 s for DHCP on `enp5s0`, and
+`NetworkManager-wait-online` waited 6 s for `enp5s0` (r8169) to
+negotiate its 1 Gbps link (`Link is Up` at 17.68 s), and
 everything ordered after `network-online.target` waited with it: docker,
 exim4 and cups-browsed. None of them needs a routable network at boot.
 exim4 listens only on 127.0.0.1 and ::1, cups-browsed has no printers
