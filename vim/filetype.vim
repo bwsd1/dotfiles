@@ -110,6 +110,15 @@ augroup filetypedetect
         \,?*.patch
         \,?*.rej
         \ setfiletype diff
+  " Dockerfiles
+  autocmd BufNewFile,BufRead
+        \ Dockerfile
+        \,Containerfile
+        \,?*.Dockerfile
+        \,?*.dockerfile
+        \,Dockerfile.?*
+        \,dockerfile.?*
+        \ setfiletype dockerfile
   " INI files
   autocmd BufNewFile,BufRead
         \ ?*.ini
